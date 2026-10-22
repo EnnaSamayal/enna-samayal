@@ -1,28 +1,93 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Enna Samayal – Your Tamil Kitchen Companion</title>
+  <meta name="theme-color" content="#f8f5eb">
+  <meta name="description" content="Discover delicious Tamil and South Indian recipes using the ingredients you already have in your kitchen.">
+  <title>Enna Samayal | Your Tamil Kitchen Companion</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="Enna Samayal home">
+      <span class="brand-mark" aria-hidden="true">இ</span>
+      <span class="brand-name">Enna Samayal</span>
+    </a>
+    <span class="header-tagline">YOUR TAMIL KITCHEN COMPANION</span>
+  </header>
+
   <main class="welcome">
     <div class="welcome-content">
-      <h1>Vanakkam! 🙏 Welcome to Enna Samayal!</h1>
-      <p>So happy you're here. 💚</p>
-      <p>What shall we cook together today?</p>
+      <div class="welcome-copy">
+        <span class="eyebrow">
+          <span class="eyebrow-dot"></span>
+          A LITTLE TASTE OF HOME
+        </span>
 
-      <form class="chat-form">
-        <input
-          type="text"
-          placeholder="Tell me what you'd like to cook..."
-          aria-label="Tell me what you'd like to cook"
-        >
-        <button type="submit">Send</button>
-      </form>
+        <h1>Vanakkam!<br>
+          <span>Let's cook something wonderful.</span>
+        </h1>
+
+        <p class="welcome-intro">
+          Good food starts with what you have.
+          Tell us what's in your kitchen, and let's
+          discover your next favourite meal.
+        </p>
+
+        <div class="welcome-note">
+          <span aria-hidden="true">🌿</span>
+          Everyday ingredients. Delicious possibilities.
+        </div>
+
+        <form class="chat-form">
+          <label class="input-label" for="ingredient-input">
+            What ingredients do you have?
+          </label>
+          <div class="input-row">
+            <input
+              id="ingredient-input"
+              type="text"
+              placeholder="e.g. onion, tomato, rice..."
+              aria-label="Tell me what ingredients you have"
+            >
+            <button type="submit">Find recipes <span aria-hidden="true">→</span></button>
+          </div>
+          <p class="input-hint">Start with a few ingredients — we'll take it from there.</p>
+        </form>
+      </div>
+
+      <div class="welcome-visual" aria-label="South Indian cooking">
+        <div class="visual-top-label">MADE WITH LOVE</div>
+        <div class="visual-illustration" aria-hidden="true">
+          <div class="plate">
+            <div class="dosa"></div>
+            <div class="chutney chutney-one"></div>
+            <div class="chutney chutney-two"></div>
+            <div class="sambar"></div>
+            <div class="curry-leaf leaf-one"></div>
+            <div class="curry-leaf leaf-two"></div>
+          </div>
+        </div>
+        <div class="visual-caption">
+          <span class="caption-sparkle" aria-hidden="true">✳</span>
+          <div>
+            <strong>A taste of home</strong>
+            <span>Simple food, made special.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="welcome-footer">
+      <span>ROOTED IN SOUTH INDIAN FLAVOUR</span>
+      <span>MADE FOR YOUR EVERYDAY KITCHEN</span>
     </div>
   </main>
+
+  <footer class="site-footer">
+    A little inspiration for whatever is in your kitchen. <span>💚</span>
+  </footer>
 
   <script src="script.js"></script>
 </body>
