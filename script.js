@@ -1,496 +1,446 @@
-const form = document.querySelector(".chat-form");
-const input = form.querySelector("input");
-const content = document.querySelector(".welcome-content");
+/* Enna Samayal — replacement script.js */
+(() => {
+  "use strict";
 
-let availableIngredients = [];
-let shownDishNames = [];
-let currentView = "suggestions";
-let lastSuggestionsHTML = "";
+  const form = document.querySelector(".chat-form");
+  const input = form?.querySelector("input");
+  const content = document.querySelector(".welcome-content");
 
-const ingredientAliases = {
-  rice: ["rice", "basmati"],
-  tomato: ["tomatoes", "tomato"],
-  onion: ["onions", "onion"],
-  potato: ["potatoes", "potato"],
-  carrot: ["carrots", "carrot"],
-  beans: ["green beans", "beans"],
-  peas: ["green peas", "peas"],
-  spinach: ["spinach", "palak"],
-  egg: ["eggs", "egg"],
-  chicken: ["chicken"],
-  coconut: ["coconut", "grated coconut"],
-  lentils: ["lentils", "dal", "dhal", "toor dal", "moong dal"],
-  chickpeas: ["chickpeas", "chana", "chole"],
-  dosa_batter: ["dosa batter", "idli batter", "batter"],
-  bread: ["bread"],
-  lemon: ["lemon", "lemons"],
-  garlic: ["garlic"],
-  ginger: ["ginger"],
-  capsicum: ["capsicum", "bell pepper", "bell peppers"],
-  cauliflower: ["cauliflower"],
-  aubergine: ["aubergine", "brinjal", "eggplant"],
-  okra: ["okra", "lady's finger", "ladies finger"],
-  fish: ["fish"],
-  paneer: ["paneer"],
-  oats: ["oats", "oatmeal"],
-  green_chilli: ["green chillies", "green chilli", "green chilies", "green chili", "chilli", "chillies", "chili", "chilies"],
-  coriander: ["fresh coriander", "coriander leaves", "coriander"],
-  mint: ["mint leaves", "fresh mint", "mint"],
-  curry_leaves: ["curry leaves"],
-  cumin: ["cumin seeds", "cumin"],
-  mustard_seeds: ["mustard seeds"],
-  coriander_powder: ["coriander powder"],
-  turmeric: ["turmeric powder", "turmeric"],
-  garam_masala: ["garam masala"],
-  oil: ["cooking oil", "oil"],
-  salt: ["salt"]
-};
-
-const dishes = [
-  { name: "Tomato Thokku", main: ["tomato", "onion"], extras: ["green_chilli", "garlic", "oil", "salt"], time: "25 minutes", description: "A tangy tomato accompaniment for rice or dosa." },
-  { name: "Tomato Rice", main: ["rice", "tomato", "onion"], extras: ["green_chilli", "garlic", "ginger", "curry_leaves", "mustard_seeds", "oil", "salt"], time: "25 minutes", description: "Tangy South Indian tomato rice." },
-  { name: "Potato Masala", main: ["potato", "onion"], extras: ["green_chilli", "ginger", "turmeric", "mustard_seeds", "curry_leaves", "oil", "salt"], time: "25 minutes", description: "Soft potatoes cooked with onion and spices." },
-  { name: "Potato Roast", main: ["potato"], extras: ["green_chilli", "garlic", "turmeric", "cumin", "oil", "salt"], time: "30 minutes", description: "A crispy, spiced potato side dish." },
-  { name: "Tomato Rasam", main: ["tomato"], extras: ["garlic", "ginger", "green_chilli", "cumin", "coriander", "salt"], time: "20 minutes", description: "A comforting, tangy South Indian soup." },
-  { name: "Vegetable Rice", main: ["rice", "carrot", "peas", "onion"], extras: ["green_chilli", "ginger", "garlic", "cumin", "oil", "salt"], time: "25 minutes", description: "Rice cooked with vegetables and spices." },
-  { name: "Egg Fried Rice", main: ["rice", "egg", "onion"], extras: ["garlic", "ginger", "green_chilli", "oil", "salt"], time: "15 minutes", description: "A quick meal using cooked rice and eggs." },
-  { name: "Chicken Tomato Curry", main: ["chicken", "tomato", "onion"], extras: ["garlic", "ginger", "green_chilli", "coriander", "turmeric", "garam_masala", "salt"], time: "40 minutes", description: "Homestyle chicken curry with tomato gravy." },
-  { name: "Chana Masala", main: ["chickpeas", "tomato", "onion"], extras: ["garlic", "ginger", "green_chilli", "coriander", "cumin", "garam_masala", "salt"], time: "30 minutes", description: "Chickpeas in a spiced tomato sauce." },
-  { name: "Spinach Dal", main: ["spinach", "lentils", "onion"], extras: ["garlic", "ginger", "green_chilli", "cumin", "turmeric", "salt"], time: "30 minutes", description: "Lentils cooked with spinach." },
-  { name: "Carrot and Beans Poriyal", main: ["carrot", "beans"], extras: ["coconut", "green_chilli", "mustard_seeds", "curry_leaves", "oil", "salt"], time: "20 minutes", description: "A colourful South Indian vegetable side." },
-  { name: "Capsicum Potato Fry", main: ["capsicum", "potato"], extras: ["green_chilli", "garlic", "cumin", "oil", "salt"], time: "25 minutes", description: "Pan-fried capsicum and potato." },
-  { name: "Brinjal Curry", main: ["aubergine", "tomato", "onion"], extras: ["garlic", "green_chilli", "coriander", "cumin", "turmeric", "oil", "salt"], time: "30 minutes", description: "Brinjal cooked in a savoury tomato gravy." },
-  { name: "Okra Poriyal", main: ["okra", "onion"], extras: ["green_chilli", "curry_leaves", "mustard_seeds", "oil", "salt"], time: "20 minutes", description: "A simple South Indian okra stir-fry." },
-  { name: "Paneer Tomato Curry", main: ["paneer", "tomato", "onion"], extras: ["garlic", "ginger", "green_chilli", "coriander", "garam_masala", "salt"], time: "30 minutes", description: "Paneer in a gently spiced tomato gravy." },
-  { name: "Coconut Chutney", main: ["coconut"], extras: ["green_chilli", "ginger", "salt", "mustard_seeds", "curry_leaves", "oil"], time: "10 minutes", description: "A classic accompaniment for idli and dosa." },
-  { name: "Lemon Rice", main: ["rice", "lemon"], extras: ["green_chilli", "mustard_seeds", "curry_leaves", "turmeric", "oil", "salt"], time: "15 minutes", description: "Zesty rice with South Indian flavours." },
-  { name: "Vegetable Kurma", main: ["carrot", "peas", "potato", "onion"], extras: ["coconut", "ginger", "garlic", "green_chilli", "mint", "coriander", "salt"], time: "35 minutes", description: "Mixed vegetables in coconut gravy." },
-  { name: "Dosa", main: ["dosa_batter"], extras: ["oil"], time: "15 minutes", description: "Crispy dosa made from ready batter." },
-  { name: "Bread Omelette", main: ["bread", "egg", "onion"], extras: ["green_chilli", "coriander", "oil", "salt"], time: "10 minutes", description: "A quick egg and bread meal." },
-  { name: "Oats Porridge", main: ["oats"], extras: [], time: "10 minutes", description: "A simple, quick breakfast." },
-  { name: "Fish Tomato Curry", main: ["fish", "tomato", "onion"], extras: ["garlic", "ginger", "green_chilli", "coriander", "turmeric", "salt"], time: "30 minutes", description: "Fish simmered in tangy tomato gravy." },
-  { name: "Cauliflower Poriyal", main: ["cauliflower", "onion"], extras: ["green_chilli", "curry_leaves", "mustard_seeds", "turmeric", "oil", "salt"], time: "20 minutes", description: "A lightly spiced cauliflower stir-fry." }
-];
-
-// Recipes are designed for approximately 2 servings.
-// Adjust salt, chilli and cooking time to taste and ingredient size.
-const recipes = {
-  "Tomato Thokku": {
-    prep: "10 minutes", cook: "15 minutes",
-    ingredients: ["2 medium tomatoes, finely chopped", "1 small onion, chopped", "2 garlic cloves, crushed (optional)", "1 green chilli, chopped (optional)", "1½ tbsp oil", "Salt to taste"],
-    steps: ["Heat the oil in a pan over medium heat.", "Add the onion and cook for 3–4 minutes until softened.", "Add garlic and green chilli, if using, and stir briefly.", "Add the tomatoes and salt. Cook, stirring regularly, until the tomatoes break down and the mixture thickens.", "Taste, adjust the seasoning and serve with rice, dosa or idli."]
-  },
-  "Tomato Rice": {
-    prep: "10 minutes", cook: "15 minutes",
-    ingredients: ["150 g uncooked rice, rinsed", "2 medium tomatoes, chopped", "1 small onion, sliced", "1 green chilli, slit (optional)", "1 garlic clove, chopped (optional)", "½ tsp mustard seeds (optional)", "6–8 curry leaves (optional)", "1 tbsp oil", "¼ tsp turmeric (optional)", "Salt to taste", "Water according to your rice packet"],
-    steps: ["Cook the rice according to its packet instructions. Spread it out and allow it to cool slightly.", "Heat oil in a pan. Add mustard seeds and curry leaves if available.", "Add onion and cook until softened. Stir in garlic and chilli if using.", "Add tomatoes, turmeric and salt. Cook until the tomatoes form a thick sauce.", "Add the cooked rice and gently mix until evenly coated. Heat through and serve."]
-  },
-  "Potato Masala": {
-    prep: "10 minutes", cook: "15 minutes",
-    ingredients: ["2 medium potatoes, peeled and diced", "1 medium onion, sliced", "1 green chilli, chopped (optional)", "1 tsp grated ginger (optional)", "¼ tsp turmeric", "½ tsp mustard seeds (optional)", "6 curry leaves (optional)", "1 tbsp oil", "Salt to taste", "Water as needed"],
-    steps: ["Boil the potatoes in water until tender, then drain.", "Heat oil in a pan. Add mustard seeds and curry leaves if using.", "Add onion, chilli and ginger. Cook until the onion softens.", "Add turmeric, salt and the cooked potatoes.", "Gently break up a few potato pieces and mix. Add a splash of water if needed, cook for 2–3 minutes and serve."]
-  },
-  "Potato Roast": {
-    prep: "10 minutes", cook: "20 minutes",
-    ingredients: ["3 medium potatoes, diced small", "1½ tbsp oil", "½ tsp cumin seeds (optional)", "2 garlic cloves, chopped (optional)", "¼ tsp turmeric", "½ tsp chilli powder or 1 green chilli (optional)", "Salt to taste"],
-    steps: ["Boil or microwave the diced potatoes until just tender; drain well.", "Heat oil in a wide pan. Add cumin and garlic if using.", "Add potatoes, turmeric and salt. Stir to coat.", "Cook over medium heat for 12–18 minutes, turning occasionally, until golden and crisp in places.", "Add chilli to taste, check the seasoning and serve."]
-  },
-  "Tomato Rasam": {
-    prep: "5 minutes", cook: "15 minutes",
-    ingredients: ["2 medium tomatoes, chopped", "2 garlic cloves, crushed (optional)", "½ tsp cumin seeds (optional)", "1 green chilli, slit (optional)", "¼ tsp turmeric (optional)", "500 ml water", "1 tbsp chopped coriander (optional)", "Salt to taste"],
-    steps: ["Place tomatoes, garlic, cumin, chilli, turmeric and water in a saucepan.", "Bring to a boil, then simmer for 10–12 minutes until the tomatoes soften.", "Lightly mash the tomatoes with a spoon.", "Add salt and simmer for another 2–3 minutes. Add a little more water if you prefer a thinner rasam.", "Stir in coriander if available and serve hot."]
-  },
-  "Vegetable Rice": {
-    prep: "10 minutes", cook: "20 minutes",
-    ingredients: ["150 g uncooked rice, rinsed", "1 medium carrot, diced", "75 g peas", "1 small onion, sliced", "1 tbsp oil", "½ tsp cumin seeds (optional)", "1 tsp grated ginger (optional)", "Salt to taste", "Water according to your rice packet"],
-    steps: ["Heat oil in a saucepan and add cumin if available.", "Add onion and ginger; cook for 2–3 minutes.", "Add carrot and peas and stir for another 2 minutes.", "Add the rinsed rice, salt and the amount of water recommended for your rice.", "Bring to a boil, cover and cook on low heat until the rice and vegetables are tender. Rest for 5 minutes before fluffing and serving."]
-  },
-  "Egg Fried Rice": {
-    prep: "5 minutes", cook: "10 minutes",
-    ingredients: ["300 g cooked, chilled rice", "2 eggs", "1 small onion, finely chopped", "1 garlic clove, chopped (optional)", "1 tsp grated ginger (optional)", "1 tbsp oil", "Salt and pepper to taste"],
-    steps: ["Use rice that has been cooled promptly and refrigerated; break up any clumps.", "Heat half the oil in a pan. Beat the eggs, scramble until fully cooked, then transfer to a plate.", "Add the remaining oil and cook the onion until softened. Add garlic and ginger if using.", "Add the rice and stir-fry until steaming hot throughout.", "Return the cooked egg to the pan, season and mix. Serve immediately."]
-  },
-  "Chicken Tomato Curry": {
-    prep: "10 minutes", cook: "30 minutes",
-    ingredients: ["300 g boneless chicken, cut into small pieces", "2 medium tomatoes, chopped", "1 medium onion, chopped", "2 garlic cloves, crushed", "1 tsp grated ginger", "½ tsp turmeric", "1 tsp garam masala (optional)", "1 tbsp oil", "150 ml water, plus more if needed", "Salt and chilli to taste", "Fresh coriander (optional)"],
-    steps: ["Heat oil in a saucepan. Cook the onion until softened and lightly golden.", "Add garlic and ginger and stir for 30 seconds.", "Add tomatoes, turmeric, garam masala, chilli if using and salt. Cook until the tomatoes soften.", "Add the chicken and stir to coat. Add water, cover and simmer gently, stirring occasionally.", "Cook until the chicken is fully cooked through with no pink in the centre; a thermometer should reach 75°C. Add a splash of water if needed.", "Check the seasoning, garnish with coriander if available and serve."]
-  },
-  "Chana Masala": {
-    prep: "10 minutes", cook: "20 minutes",
-    ingredients: ["1 × 400 g can chickpeas, drained and rinsed", "2 medium tomatoes, chopped", "1 medium onion, chopped", "2 garlic cloves, crushed", "1 tsp grated ginger", "½ tsp cumin seeds (optional)", "1 tsp garam masala (optional)", "1 tbsp oil", "150 ml water", "Salt and chilli to taste", "Fresh coriander (optional)"],
-    steps: ["Heat oil in a pan. Add cumin if using, then cook the onion until soft.", "Add garlic and ginger and stir for 30 seconds.", "Add tomatoes, garam masala, chilli if using and salt. Cook until thick and soft.", "Stir in the chickpeas and water. Simmer for 12–15 minutes.", "Mash a few chickpeas against the side of the pan to thicken the sauce.", "Taste, adjust the seasoning and garnish with coriander if available."]
-  },
-  "Spinach Dal": {
-    prep: "10 minutes", cook: "25 minutes",
-    ingredients: ["150 g dried red lentils, rinsed", "100–150 g spinach, washed", "1 small onion, chopped", "2 garlic cloves, chopped", "¼ tsp turmeric", "½ tsp cumin (optional)", "600 ml water, plus more if needed", "1 tbsp oil", "Salt to taste", "Green chilli or ginger (optional)"],
-    steps: ["Rinse the lentils and place in a saucepan with water and turmeric.", "Bring to a boil, reduce the heat and simmer until the lentils are soft, about 15–20 minutes. Add water if needed.", "In a separate pan, heat oil and cook the onion until softened.", "Add garlic and cumin, plus chilli or ginger if using. Stir briefly.", "Add the spinach and cook until wilted.", "Mix the spinach mixture into the cooked lentils, season with salt and simmer for 3–5 minutes."]
-  },
-  "Carrot and Beans Poriyal": {
-    prep: "10 minutes", cook: "10 minutes",
-    ingredients: ["1 medium carrot, diced", "150 g green beans, trimmed and chopped", "1 tbsp oil", "½ tsp mustard seeds (optional)", "6 curry leaves (optional)", "1 green chilli, chopped (optional)", "2 tbsp grated coconut (optional)", "Salt to taste", "3 tbsp water"],
-    steps: ["Heat oil in a pan and add mustard seeds. When they pop, add curry leaves and chilli if using.", "Add the carrot, beans, salt and water.", "Cover and cook on low-medium heat for 7–10 minutes, stirring occasionally, until tender but not mushy.", "Remove the lid and allow excess water to evaporate.", "Stir in grated coconut if available and cook for another minute. Serve as a side dish."]
-  },
-  "Capsicum Potato Fry": {
-    prep: "10 minutes", cook: "15 minutes",
-    ingredients: ["2 medium potatoes, diced", "1 large capsicum, chopped", "1 small onion, sliced (optional)", "1 tbsp oil", "½ tsp cumin (optional)", "1 garlic clove, chopped (optional)", "Salt and chilli to taste"],
-    steps: ["Boil or microwave the potatoes until just tender, then drain.", "Heat oil in a pan and add cumin and garlic if using.", "Add onion if using and cook until softened.", "Add the potatoes and cook for 5 minutes, stirring gently.", "Add capsicum, salt and chilli to taste. Cook for another 5–7 minutes until the capsicum is tender but still holds its shape."]
-  },
-  "Brinjal Curry": {
-    prep: "10 minutes", cook: "20 minutes",
-    ingredients: ["1 medium aubergine, diced", "2 medium tomatoes, chopped", "1 small onion, chopped", "2 garlic cloves, chopped", "½ tsp cumin (optional)", "¼ tsp turmeric", "1 tbsp oil", "150 ml water", "Salt and chilli to taste", "Fresh coriander (optional)"],
-    steps: ["Heat oil in a pan and cook the onion until softened.", "Add garlic and cumin if using; stir briefly.", "Add tomatoes, turmeric, chilli if using and salt. Cook until the tomatoes soften.", "Add aubergine and water. Stir, cover and simmer for 12–15 minutes, stirring occasionally.", "Cook until the aubergine is tender and the sauce has thickened. Add a splash of water if it becomes too dry.", "Garnish with coriander if available and serve."]
-  },
-  "Okra Poriyal": {
-    prep: "10 minutes", cook: "10 minutes",
-    ingredients: ["250 g okra, washed and thoroughly dried", "1 small onion, sliced", "1 tbsp oil", "½ tsp mustard seeds (optional)", "6 curry leaves (optional)", "1 green chilli (optional)", "Salt to taste"],
-    steps: ["Cut the dry okra into small pieces. Keeping it dry helps reduce sliminess.", "Heat oil in a wide pan. Add mustard seeds and curry leaves if using.", "Add onion and chilli and cook for 2–3 minutes.", "Add okra and stir gently. Cook uncovered over medium heat for 8–12 minutes, turning occasionally.", "Season with salt near the end and cook until the okra is tender. Avoid adding water."]
-  },
-  "Paneer Tomato Curry": {
-    prep: "10 minutes", cook: "20 minutes",
-    ingredients: ["200 g paneer, cubed", "2 medium tomatoes, chopped", "1 small onion, chopped", "2 garlic cloves, crushed", "1 tsp grated ginger", "½ tsp garam masala (optional)", "1 tbsp oil", "100 ml water", "Salt and chilli to taste", "Fresh coriander (optional)"],
-    steps: ["Heat oil in a pan and cook the onion until soft.", "Add garlic and ginger and stir briefly.", "Add tomatoes, garam masala, chilli if using and salt. Cook until the tomatoes break down.", "Add water and simmer for 4–5 minutes to make a sauce.", "Add paneer and simmer gently for 4–5 minutes until heated through. Avoid prolonged boiling, which can make paneer firm.", "Garnish with coriander if available and serve."]
-  },
-  "Coconut Chutney": {
-    prep: "5 minutes", cook: "5 minutes",
-    ingredients: ["100 g grated coconut, fresh or frozen and thawed", "1 small green chilli (optional)", "1 tsp grated ginger (optional)", "60–100 ml water, as needed", "Salt to taste", "½ tsp mustard seeds (optional)", "4–6 curry leaves (optional)", "1 tsp oil (optional)"],
-    steps: ["Blend the coconut, chilli, ginger, salt and enough water to make a smooth or slightly textured chutney.", "Add more water a little at a time until it reaches your preferred consistency.", "For an optional tempering, heat the oil in a small pan.", "Add mustard seeds and allow them to pop, then add curry leaves.", "Pour the tempering over the chutney and serve fresh with dosa or idli. Refrigerate leftovers promptly."]
-  },
-  "Lemon Rice": {
-    prep: "5 minutes", cook: "10 minutes",
-    ingredients: ["300 g cooked rice, cooled slightly", "1 lemon, juiced", "1 tbsp oil", "½ tsp mustard seeds (optional)", "6 curry leaves (optional)", "1 green chilli, chopped (optional)", "¼ tsp turmeric", "Salt to taste"],
-    steps: ["If cooking rice fresh, cook it first and let it cool slightly so the grains remain separate.", "Heat oil in a pan. Add mustard seeds and curry leaves if using.", "Add chilli and turmeric and stir for a few seconds.", "Add the rice and salt. Mix gently until evenly coated and hot.", "Turn off the heat, add lemon juice and mix well.", "Taste and adjust the lemon and salt before serving."]
-  },
-  "Vegetable Kurma": {
-    prep: "15 minutes", cook: "20 minutes",
-    ingredients: ["1 medium carrot, diced", "1 medium potato, diced", "75 g peas", "1 small onion, chopped", "50 g grated coconut", "1 garlic clove", "1 tsp grated ginger", "1 tbsp oil", "350 ml water, approximately", "Salt and chilli to taste", "Fresh mint or coriander (optional)"],
-    steps: ["Blend the coconut, garlic, ginger and a little water into a smooth paste.", "Heat oil in a saucepan and cook the onion until softened.", "Add carrot, potato and peas. Stir for 2 minutes.", "Add the coconut paste, water, salt and chilli if using.", "Bring to a gentle boil, then cover and simmer for 12–18 minutes until all the vegetables are tender.", "Adjust the thickness with water and garnish with mint or coriander if available."]
-  },
-  "Dosa": {
-    prep: "2 minutes", cook: "10–15 minutes",
-    ingredients: ["250–300 ml ready dosa batter", "1–2 tsp oil for cooking", "Water, only if needed to thin the batter"],
-    steps: ["Stir the batter. If it is very thick, add a little water until it pours easily.", "Heat a flat non-stick or seasoned pan over medium-high heat.", "Lightly grease the pan. Pour a ladle of batter into the centre and spread it in circles to form a thin round.", "Drizzle a little oil around the edges and cook until the underside is golden and the top looks set.", "Flip for 30–60 seconds if you prefer both sides cooked, or fold when crisp. Repeat with the remaining batter."]
-  },
-  "Bread Omelette": {
-    prep: "3 minutes", cook: "7 minutes",
-    ingredients: ["2 eggs", "2 slices of bread", "¼ small onion, finely chopped", "1 tbsp chopped coriander (optional)", "1 green chilli, finely chopped (optional)", "1 tsp oil", "Salt and pepper to taste"],
-    steps: ["Beat the eggs in a bowl with onion, coriander if using, chilli if using, salt and pepper.", "Heat oil in a non-stick frying pan over medium heat.", "Pour in the egg mixture and tilt the pan so it spreads evenly.", "Place the bread slices on the egg while it is still wet, then carefully flip the omelette so the bread side meets the pan.", "Cook until the egg is fully set. Fold the omelette around the bread and serve hot."]
-  },
-  "Oats Porridge": {
-    prep: "1 minute", cook: "5 minutes",
-    ingredients: ["80 g rolled oats", "400 ml milk or water", "Pinch of salt (optional)", "Fruit, cinnamon or a little honey (optional)"],
-    steps: ["Place the oats and milk or water in a saucepan.", "Bring to a gentle simmer, stirring regularly.", "Cook for 4–6 minutes until creamy, adding a little more liquid if needed.", "Add a small pinch of salt if desired.", "Serve warm with your preferred toppings."]
-  },
-  "Fish Tomato Curry": {
-    prep: "10 minutes", cook: "20 minutes",
-    ingredients: ["300 g boneless fish fillets, cut into large pieces", "2 medium tomatoes, chopped", "1 small onion, chopped", "2 garlic cloves, crushed", "1 tsp grated ginger", "¼ tsp turmeric", "1 tbsp oil", "150 ml water", "Salt and chilli to taste", "Fresh coriander (optional)"],
-    steps: ["Heat oil in a pan and cook the onion until softened.", "Add garlic and ginger and stir briefly.", "Add tomatoes, turmeric, chilli if using and salt. Cook until the tomatoes form a thick sauce.", "Add water and simmer for 5 minutes.", "Gently add the fish pieces and spoon sauce over them. Simmer gently until the fish is opaque and flakes easily, usually 5–10 minutes depending on thickness.", "Avoid stirring roughly so the fish stays in pieces. Garnish with coriander if available and serve."]
-  },
-  "Cauliflower Poriyal": {
-    prep: "10 minutes", cook: "10 minutes",
-    ingredients: ["300 g cauliflower florets", "1 small onion, sliced", "1 tbsp oil", "½ tsp mustard seeds (optional)", "6 curry leaves (optional)", "¼ tsp turmeric", "1 green chilli (optional)", "Salt to taste", "2–3 tbsp water"],
-    steps: ["Wash the cauliflower and cut it into small florets.", "Heat oil in a pan. Add mustard seeds and curry leaves if using.", "Add onion and chilli and cook until the onion softens.", "Add cauliflower, turmeric, salt and water.", "Cover and cook for 7–10 minutes, stirring occasionally, until tender but not mushy.", "Remove the lid and cook off any remaining water. Taste and serve."]
-  }
-};
-
-function containsWord(text, phrase) {
-  const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp("(^|[^a-z])" + escaped + "([^a-z]|$)", "i").test(text);
-}
-
-function findIngredients(question) {
-  return Object.entries(ingredientAliases)
-    .filter(([, aliases]) => aliases.some(alias => containsWord(question, alias)))
-    .map(([ingredient]) => ingredient);
-}
-
-function ingredientLabel(ingredient) {
-  const labels = {
-    tomato: "tomatoes",
-    potato: "potatoes",
-    lentils: "lentils / dal",
-    dosa_batter: "dosa or idli batter",
-    aubergine: "brinjal",
-    green_chilli: "green chillies",
-    coriander: "fresh coriander",
-    mint: "fresh mint",
-    curry_leaves: "curry leaves",
-    cumin: "cumin seeds",
-    mustard_seeds: "mustard seeds",
-    coriander_powder: "coriander powder",
-    garam_masala: "garam masala"
-  };
-  return labels[ingredient] || ingredient.replaceAll("_", " ");
-}
-
-function getAvailableDishes() {
-  return dishes.filter(dish =>
-    dish.main.every(ingredient => availableIngredients.includes(ingredient))
-  );
-}
-
-function createResultArea() {
-  let result = content.querySelector(".chat-result");
-
-  if (!result) {
-    result = document.createElement("div");
-    result.className = "chat-result";
-    result.style.cssText =
-      "margin-top:24px;padding:20px;background:#f0f6ef;border-radius:14px;text-align:left;line-height:1.6;color:#234b35;";
-    content.appendChild(result);
-  }
-
-  return result;
-}
-
-function makeButton(label, onClick) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.textContent = label;
-  button.style.cssText =
-    "padding:10px 16px;margin:8px 8px 0 0;border:0;border-radius:8px;background:#176b43;color:white;font-weight:600;cursor:pointer;";
-  button.addEventListener("click", onClick);
-  return button;
-}
-
-function showRecipe(dish) {
-  const recipe = recipes[dish.name];
-  const result = createResultArea();
-
-  if (!recipe) {
-    result.textContent = "Sorry, the full recipe for this dish is not available yet.";
+  if (!form || !input || !content) {
+    console.error("Enna Samayal: Check that .chat-form and .welcome-content exist in your HTML.");
     return;
   }
 
-  currentView = "recipe";
-  result.replaceChildren();
+  const aliases = {
+    rice:["rice","basmati"],
+    tomato:["tomato","tomatoes"],
+    onion:["onion","onions"],
+    potato:["potato","potatoes"],
+    carrot:["carrot","carrots"],
+    beans:["green beans","beans"],
+    peas:["green peas","peas"],
+    spinach:["spinach","palak"],
+    egg:["egg","eggs"],
+    chicken:["chicken"],
+    coconut:["coconut","grated coconut"],
+    lentils:["lentil","lentils","dal","dhal","toor dal","moong dal"],
+    chickpeas:["chickpea","chickpeas","chana","chole"],
+    dosa_batter:["dosa batter","idli batter","batter"],
+    bread:["bread"],
+    lemon:["lemon","lemons"],
+    garlic:["garlic"],
+    ginger:["ginger"],
+    capsicum:["capsicum","bell pepper","bell peppers"],
+    cauliflower:["cauliflower"],
+    aubergine:["aubergine","brinjal","eggplant"],
+    okra:["okra","lady's finger","ladies finger"],
+    fish:["fish"],
+    paneer:["paneer"],
+    oats:["oats","oatmeal"],
+    green_chilli:["green chilli","green chillies","green chili","green chilies","chilli","chillies","chili","chilies"],
+    coriander:["fresh coriander","coriander leaves","coriander"],
+    mint:["mint leaves","fresh mint","mint"],
+    curry_leaves:["curry leaves"],
+    cumin:["cumin seeds","cumin"],
+    mustard_seeds:["mustard seeds"],
+    coriander_powder:["coriander powder"],
+    turmeric:["turmeric powder","turmeric"],
+    garam_masala:["garam masala"],
+    oil:["cooking oil","oil"],
+    salt:["salt"]
+  };
 
-const back = makeButton("← Back to suggestions", () => {
-  result.innerHTML = lastSuggestionsHTML;
-  currentView = "suggestions";
-  result.scrollIntoView({ behavior: "smooth", block: "nearest" });
-});
-back.style.marginTop = "0";
-result.appendChild(back);
+  // A dish can be suggested when at least one main ingredient matches.
+  const dishes = [
+    {name:"Tomato Thokku",main:["tomato","onion"],extras:["green_chilli","garlic","oil","salt"],time:"25 minutes",description:"A tangy tomato accompaniment for rice or dosa.",ingredients:["2 tomatoes, chopped","1 small onion, chopped","2 garlic cloves (optional)","1 green chilli (optional)","1½ tbsp oil","Salt to taste"],steps:["Heat oil in a pan over medium heat.","Add onion and cook until softened.","Add garlic and chilli if using.","Add tomatoes and salt; cook until thick.","Taste and serve with rice, dosa or idli."]},
+    {name:"Tomato Rice",main:["rice","tomato","onion"],extras:["green_chilli","garlic","ginger","curry_leaves","mustard_seeds","oil","salt"],time:"25 minutes",description:"Tangy South Indian tomato rice.",ingredients:["150 g rice","2 tomatoes, chopped","1 small onion, sliced","1 green chilli (optional)","1 garlic clove (optional)","Mustard seeds and curry leaves (optional)","1 tbsp oil","Salt to taste"],steps:["Cook rice according to its packet and let it cool slightly.","Heat oil; add mustard seeds and curry leaves if available.","Add onion and cook until soft; add garlic and chilli if using.","Add tomatoes and salt; cook into a thick sauce.","Mix in cooked rice and heat through."]},
+    {name:"Potato Masala",main:["potato","onion"],extras:["green_chilli","ginger","turmeric","mustard_seeds","curry_leaves","oil","salt"],time:"25 minutes",description:"Soft potatoes cooked with onion and spices.",ingredients:["2 potatoes, diced","1 onion, sliced","1 green chilli (optional)","1 tsp ginger (optional)","¼ tsp turmeric","1 tbsp oil","Salt to taste"],steps:["Boil potatoes until tender and drain.","Heat oil in a pan and cook onion until soft.","Add chilli, ginger and turmeric if using.","Add potatoes and salt; gently mix.","Cook for 2–3 minutes and serve."]},
+    {name:"Potato Roast",main:["potato"],extras:["green_chilli","garlic","turmeric","cumin","oil","salt"],time:"30 minutes",description:"A crispy, spiced potato side dish.",ingredients:["3 potatoes, diced","1½ tbsp oil","½ tsp cumin (optional)","2 garlic cloves (optional)","¼ tsp turmeric","Salt and chilli to taste"],steps:["Boil or microwave potatoes until just tender; drain well.","Heat oil and add cumin and garlic if using.","Add potatoes, turmeric and salt.","Cook over medium heat, turning occasionally, until golden.","Adjust seasoning and serve."]},
+    {name:"Tomato Rasam",main:["tomato"],extras:["garlic","ginger","green_chilli","cumin","coriander","salt"],time:"20 minutes",description:"A comforting, tangy South Indian soup.",ingredients:["2 tomatoes, chopped","2 garlic cloves (optional)","½ tsp cumin (optional)","500 ml water","Coriander (optional)","Salt to taste"],steps:["Put tomatoes, garlic, cumin and water in a saucepan.","Bring to a boil and simmer until tomatoes soften.","Lightly mash the tomatoes.","Season with salt and simmer for 2–3 minutes.","Add coriander if available and serve hot."]},
+    {name:"Vegetable Rice",main:["rice","carrot","peas","onion"],extras:["green_chilli","ginger","garlic","cumin","oil","salt"],time:"25 minutes",description:"Rice cooked with vegetables and spices.",ingredients:["150 g rice","1 carrot, diced","75 g peas","1 small onion, sliced","1 tbsp oil","Cumin or ginger (optional)","Salt to taste"],steps:["Heat oil in a saucepan and cook onion until softened.","Add carrot, peas and optional spices; stir briefly.","Add rinsed rice, salt and the water recommended for your rice.","Bring to a boil, cover and cook on low until tender.","Rest for 5 minutes, fluff and serve."]},
+    {name:"Egg Fried Rice",main:["rice","egg","onion"],extras:["garlic","ginger","green_chilli","oil","salt"],time:"15 minutes",description:"A quick meal using cooked rice and eggs.",ingredients:["300 g cooked, chilled rice","2 eggs","1 small onion, chopped","1 garlic clove (optional)","1 tbsp oil","Salt and pepper"],steps:["Use rice cooled promptly and refrigerated; break up clumps.","Scramble eggs in half the oil until fully cooked; set aside.","Cook onion and optional garlic in remaining oil.","Add rice and stir-fry until steaming hot throughout.","Return egg to the pan, season and mix."]},
+    {name:"Chicken Tomato Curry",main:["chicken","tomato","onion"],extras:["garlic","ginger","green_chilli","coriander","turmeric","garam_masala","salt"],time:"40 minutes",description:"Homestyle chicken curry with tomato gravy.",ingredients:["300 g chicken pieces","2 tomatoes, chopped","1 onion, chopped","2 garlic cloves","1 tsp ginger","½ tsp turmeric","1 tsp garam masala (optional)","150 ml water","Oil and salt"],steps:["Cook onion in a little oil until soft.","Add garlic and ginger and stir briefly.","Add tomatoes, spices and salt; cook until softened.","Add chicken and water; cover and simmer, stirring occasionally.","Cook until chicken reaches 75°C internally and serve."]},
+    {name:"Chana Masala",main:["chickpeas","tomato","onion"],extras:["garlic","ginger","green_chilli","coriander","cumin","garam_masala","salt"],time:"30 minutes",description:"Chickpeas in a spiced tomato sauce.",ingredients:["1 can chickpeas, drained","2 tomatoes, chopped","1 onion, chopped","2 garlic cloves","1 tsp ginger","1 tsp garam masala (optional)","Oil, water and salt"],steps:["Cook onion in oil until soft.","Add garlic and ginger; stir briefly.","Add tomatoes, spices and salt; cook until thick.","Add chickpeas and a splash of water; simmer 12–15 minutes.","Mash a few chickpeas to thicken, then serve."]},
+    {name:"Spinach Dal",main:["spinach","lentils","onion"],extras:["garlic","ginger","green_chilli","cumin","turmeric","salt"],time:"30 minutes",description:"Lentils cooked with spinach.",ingredients:["150 g lentils","100–150 g spinach","1 onion, chopped","2 garlic cloves","¼ tsp turmeric","600 ml water","Oil and salt"],steps:["Rinse lentils and simmer with water and turmeric until soft.","Cook onion in a separate pan with a little oil.","Add garlic and optional cumin; stir briefly.","Add spinach and cook until wilted.","Mix into lentils, season and simmer for 3–5 minutes."]},
+    {name:"Carrot and Beans Poriyal",main:["carrot","beans"],extras:["coconut","green_chilli","mustard_seeds","curry_leaves","oil","salt"],time:"20 minutes",description:"A colourful South Indian vegetable side.",ingredients:["1 carrot, diced","150 g green beans, chopped","1 tbsp oil","Mustard seeds and curry leaves (optional)","2 tbsp grated coconut (optional)","Salt and a little water"],steps:["Heat oil and add mustard seeds if available.","Add carrot, beans, salt and a splash of water.","Cover and cook 7–10 minutes until tender.","Remove lid and evaporate excess water.","Stir in coconut if using and serve."]},
+    {name:"Capsicum Potato Fry",main:["capsicum","potato"],extras:["green_chilli","garlic","cumin","oil","salt"],time:"25 minutes",description:"Pan-fried capsicum and potato.",ingredients:["2 potatoes, diced","1 capsicum, chopped","1 tbsp oil","½ tsp cumin (optional)","Garlic (optional)","Salt and chilli to taste"],steps:["Boil or microwave potatoes until just tender; drain.","Heat oil and add cumin or garlic if using.","Add potatoes and cook for 5 minutes.","Add capsicum, salt and chilli to taste.","Cook until capsicum is tender but still holds its shape."]},
+    {name:"Brinjal Curry",main:["aubergine","tomato","onion"],extras:["garlic","green_chilli","coriander","cumin","turmeric","oil","salt"],time:"30 minutes",description:"Brinjal cooked in a savoury tomato gravy.",ingredients:["1 aubergine, diced","2 tomatoes, chopped","1 onion, chopped","2 garlic cloves","¼ tsp turmeric","150 ml water","Oil and salt"],steps:["Cook onion in oil until softened.","Add garlic and stir briefly.","Add tomatoes, turmeric and salt; cook until soft.","Add aubergine and water; cover and simmer 12–15 minutes.","Cook until aubergine is tender and serve."]},
+    {name:"Okra Poriyal",main:["okra","onion"],extras:["green_chilli","curry_leaves","mustard_seeds","oil","salt"],time:"20 minutes",description:"A simple South Indian okra stir-fry.",ingredients:["250 g okra, washed, dried and chopped","1 onion, sliced","1 tbsp oil","Mustard seeds and curry leaves (optional)","Salt and chilli to taste"],steps:["Ensure okra is dry before chopping.","Heat oil and add mustard seeds if using.","Add onion and chilli; cook briefly.","Add okra and cook uncovered for 8–12 minutes, stirring occasionally.","Season near the end and serve."]},
+    {name:"Paneer Tomato Curry",main:["paneer","tomato","onion"],extras:["garlic","ginger","green_chilli","coriander","garam_masala","salt"],time:"30 minutes",description:"Paneer in a gently spiced tomato gravy.",ingredients:["200 g paneer, cubed","2 tomatoes, chopped","1 onion, chopped","2 garlic cloves","1 tsp ginger","Garam masala (optional)","Oil, water and salt"],steps:["Cook onion in oil until soft.","Add garlic and ginger; stir briefly.","Add tomatoes, seasoning and salt; cook until broken down.","Add a little water and simmer to make a sauce.","Add paneer and simmer gently for 4–5 minutes."]},
+    {name:"Coconut Chutney",main:["coconut"],extras:["green_chilli","ginger","salt","mustard_seeds","curry_leaves","oil"],time:"10 minutes",description:"A classic accompaniment for idli and dosa.",ingredients:["100 g grated coconut","1 green chilli (optional)","1 tsp ginger (optional)","Water as needed","Salt","Mustard seeds and curry leaves (optional)"],steps:["Blend coconut, chilli, ginger, salt and water until smooth or textured.","Add water gradually to reach your preferred consistency.","For optional tempering, heat a little oil.","Add mustard seeds and curry leaves; allow seeds to pop.","Pour over chutney and serve fresh."]},
+    {name:"Lemon Rice",main:["rice","lemon"],extras:["green_chilli","mustard_seeds","curry_leaves","turmeric","oil","salt"],time:"15 minutes",description:"Zesty rice with South Indian flavours.",ingredients:["300 g cooked rice","Juice of 1 lemon","1 tbsp oil","Mustard seeds and curry leaves (optional)","¼ tsp turmeric","Salt and chilli to taste"],steps:["Cook rice and let it cool slightly.","Heat oil; add mustard seeds and curry leaves if using.","Add chilli and turmeric and stir briefly.","Add rice and salt; mix gently until hot.","Turn off heat, add lemon juice, mix and serve."]},
+    {name:"Vegetable Kurma",main:["carrot","peas","potato","onion"],extras:["coconut","ginger","garlic","green_chilli","mint","coriander","salt"],time:"35 minutes",description:"Mixed vegetables in coconut gravy.",ingredients:["1 carrot, diced","1 potato, diced","75 g peas","1 onion, chopped","50 g grated coconut","1 garlic clove","1 tsp ginger","350 ml water","Oil and salt"],steps:["Blend coconut, garlic, ginger and a little water into a paste.","Cook onion in oil until soft.","Add vegetables and stir for 2 minutes.","Add paste, water and salt.","Cover and simmer until vegetables are tender; adjust thickness and serve."]},
+    {name:"Dosa",main:["dosa_batter"],extras:["oil"],time:"15 minutes",description:"Crispy dosa made from ready batter.",ingredients:["250–300 ml dosa batter","1–2 tsp oil","Water if needed"],steps:["Stir batter; thin with a little water if necessary.","Heat a flat pan over medium-high heat.","Pour in a ladle of batter and spread into a thin circle.","Drizzle oil around the edges and cook until golden underneath.","Flip briefly if desired, fold and serve."]},
+    {name:"Bread Omelette",main:["bread","egg","onion"],extras:["green_chilli","coriander","oil","salt"],time:"10 minutes",description:"A quick egg and bread meal.",ingredients:["2 eggs","2 slices bread","¼ onion, finely chopped","Coriander or chilli (optional)","1 tsp oil","Salt and pepper"],steps:["Beat eggs with onion, optional coriander or chilli, salt and pepper.","Heat oil in a non-stick pan.","Pour in egg mixture and spread evenly.","Place bread on the wet egg, then carefully flip.","Cook until egg is fully set and serve."]},
+    {name:"Oats Porridge",main:["oats"],extras:[],time:"10 minutes",description:"A simple, quick breakfast.",ingredients:["80 g oats","400 ml milk or water","Pinch of salt (optional)","Fruit or cinnamon (optional)"],steps:["Place oats and milk or water in a saucepan.","Bring to a gentle simmer, stirring regularly.","Cook for 4–6 minutes until creamy.","Add a pinch of salt if desired.","Serve with preferred toppings."]},
+    {name:"Fish Tomato Curry",main:["fish","tomato","onion"],extras:["garlic","ginger","green_chilli","coriander","turmeric","salt"],time:"30 minutes",description:"Fish simmered in tangy tomato gravy.",ingredients:["300 g boneless fish pieces","2 tomatoes, chopped","1 onion, chopped","2 garlic cloves","1 tsp ginger","¼ tsp turmeric","150 ml water","Oil and salt"],steps:["Cook onion in oil until softened.","Add garlic and ginger and stir briefly.","Add tomatoes, turmeric and salt; cook into a sauce.","Add water and simmer for 5 minutes.","Add fish and simmer gently until opaque and flakes easily."]},
+    {name:"Cauliflower Poriyal",main:["cauliflower","onion"],extras:["green_chilli","curry_leaves","mustard_seeds","turmeric","oil","salt"],time:"20 minutes",description:"A lightly spiced cauliflower stir-fry.",ingredients:["300 g cauliflower florets","1 onion, sliced","1 tbsp oil","Mustard seeds and curry leaves (optional)","¼ tsp turmeric","Salt and a little water"],steps:["Wash cauliflower and cut into small florets.","Heat oil; add mustard seeds and curry leaves if using.","Add onion and cook until soft.","Add cauliflower, turmeric, salt and a splash of water.","Cover and cook 7–10 minutes until tender; uncover to evaporate excess water."]}
+  ];
 
-  const title = document.createElement("h2");
-  title.textContent = "🍲 " + dish.name;
-  title.style.cssText = "margin:18px 0 8px;color:#176b43;font-size:26px;";
-  result.appendChild(title);
+  const labels = {
+    tomato:"tomato", potato:"potato", lentils:"lentils / dal",
+    dosa_batter:"dosa or idli batter", aubergine:"brinjal",
+    green_chilli:"green chilli", curry_leaves:"curry leaves",
+    mustard_seeds:"mustard seeds", garam_masala:"garam masala"
+  };
 
-  const intro = document.createElement("p");
-  intro.textContent = dish.description;
-  result.appendChild(intro);
+  const label = key => labels[key] || key.replaceAll("_", " ");
+  let available = [];
+  let shown = new Set();
+  let lastSuggestions = null;
 
-  const timing = document.createElement("p");
-  timing.style.cssText = "font-weight:600;";
-  timing.textContent =
-    "Serves 2 · Preparation: " + recipe.prep + " · Cooking: " + recipe.cook;
-  result.appendChild(timing);
+  function containsPhrase(text, phrase) {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp("(^|[^a-z])" + escaped + "([^a-z]|$)", "i").test(text);
+  }
 
-  const ingredientHeading = document.createElement("h3");
-  ingredientHeading.textContent = "Ingredients";
-  ingredientHeading.style.color = "#176b43";
-  result.appendChild(ingredientHeading);
+  function findIngredients(text) {
+    return Object.entries(aliases)
+      .filter(([, words]) => words.some(word => containsPhrase(text, word)))
+      .map(([key]) => key);
+  }
 
-  const ingredientNote = document.createElement("p");
-  ingredientNote.textContent =
-    "Tick ingredients as you prepare them. Optional ingredients are labelled.";
-  result.appendChild(ingredientNote);
+  function resultArea() {
+    let result = content.querySelector(".chat-result");
 
-  const ingredientList = document.createElement("div");
-  ingredientList.style.cssText =
-    "padding:12px 16px;background:white;border-radius:10px;border:1px solid #dce8da;";
+    if (!result) {
+      result = document.createElement("section");
+      result.className = "chat-result";
+      result.style.cssText =
+        "grid-column:1/-1;width:100%;margin-top:24px;padding:20px;background:#f0f6ef;border-radius:14px;text-align:left;line-height:1.6;color:#234b35;box-sizing:border-box;";
+      content.appendChild(result);
+    }
 
-  recipe.ingredients.forEach(item => {
-    const label = document.createElement("label");
-    label.style.cssText =
-      "display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer;";
+    return result;
+  }
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.style.marginTop = "6px";
+  function makeButton(text, callback) {
+    const el = document.createElement("button");
+    el.type = "button";
+    el.textContent = text;
+    el.style.cssText =
+      "padding:10px 16px;margin:8px 8px 0 0;border:0;border-radius:8px;background:#176b43;color:white;font-weight:600;cursor:pointer;";
+    el.addEventListener("click", callback);
+    return el;
+  }
 
-    const text = document.createElement("span");
-    text.textContent = item;
+  function renderRecipe(dish) {
+    const result = resultArea();
+    result.replaceChildren();
 
-    checkbox.addEventListener("change", () => {
-      text.style.textDecoration = checkbox.checked ? "line-through" : "none";
-      text.style.opacity = checkbox.checked ? "0.65" : "1";
+    result.appendChild(makeButton("← Back to suggestions", () => {
+      renderSuggestions();
+    }));
+
+    const heading = document.createElement("h2");
+    heading.textContent = "🍲 " + dish.name;
+    heading.style.color = "#176b43";
+    result.appendChild(heading);
+
+    const description = document.createElement("p");
+    description.textContent = dish.description;
+    result.appendChild(description);
+
+    const meta = document.createElement("p");
+    meta.textContent = "Serves 2 · Estimated total time: " + dish.time;
+    result.appendChild(meta);
+
+    const ingredientsHeading = document.createElement("h3");
+    ingredientsHeading.textContent = "Ingredients";
+    result.appendChild(ingredientsHeading);
+
+    const note = document.createElement("p");
+    note.textContent = "Tick ingredients as you prepare them.";
+    result.appendChild(note);
+
+    const list = document.createElement("div");
+    list.style.cssText =
+      "padding:12px 16px;background:white;border-radius:10px;border:1px solid #dce8da;";
+
+    dish.ingredients.forEach(item => {
+      const line = document.createElement("label");
+      line.style.cssText =
+        "display:flex;gap:10px;align-items:flex-start;margin:8px 0;cursor:pointer;";
+
+      const check = document.createElement("input");
+      check.type = "checkbox";
+
+      const span = document.createElement("span");
+      span.textContent = item;
+
+      check.addEventListener("change", () => {
+        span.style.textDecoration = check.checked ? "line-through" : "none";
+        span.style.opacity = check.checked ? ".65" : "1";
+      });
+
+      line.append(check, span);
+      list.appendChild(line);
     });
 
-    label.append(checkbox, text);
-    ingredientList.appendChild(label);
-  });
+    result.appendChild(list);
 
-  result.appendChild(ingredientList);
+    const stepsHeading = document.createElement("h3");
+    stepsHeading.textContent = "Step-by-step instructions";
+    result.appendChild(stepsHeading);
 
-  const stepsHeading = document.createElement("h3");
-  stepsHeading.textContent = "Step-by-step instructions";
-  stepsHeading.style.cssText = "margin-top:22px;color:#176b43;";
-  result.appendChild(stepsHeading);
+    const steps = document.createElement("ol");
 
-  recipe.steps.forEach((step, index) => {
-    const stepCard = document.createElement("div");
-    stepCard.style.cssText =
-      "display:flex;gap:12px;align-items:flex-start;margin:10px 0;padding:14px;background:white;border:1px solid #dce8da;border-radius:10px;";
+    dish.steps.forEach(step => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      li.style.marginBottom = "10px";
+      steps.appendChild(li);
+    });
 
-    const number = document.createElement("span");
-    number.textContent = String(index + 1);
-    number.style.cssText =
-      "flex:0 0 28px;height:28px;border-radius:50%;background:#176b43;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;";
+    result.appendChild(steps);
+    result.scrollIntoView({ behavior:"smooth", block:"nearest" });
+  }
 
-    const instruction = document.createElement("p");
-    instruction.textContent = step;
-    instruction.style.margin = "2px 0";
-
-    stepCard.append(number, instruction);
-    result.appendChild(stepCard);
-  });
-
-  const finish = document.createElement("p");
-  finish.style.cssText = "margin-top:18px;font-weight:600;";
-  finish.textContent = "💚 Taste, adjust the seasoning and enjoy your homemade meal!";
-  result.appendChild(finish);
-
-  result.scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-
-function showSuggestions(result) {
-  currentView = "suggestions";
-  const matchingDishes = getAvailableDishes();
-  const newDishes = matchingDishes.filter(
-    dish => !shownDishNames.includes(dish.name)
-  );
-
+  
+function renderSuggestions() {
+  const result = resultArea();
   result.replaceChildren();
 
   const heading = document.createElement("h2");
   heading.textContent = "Let's cook with what you have! 🍲";
-  heading.style.cssText = "margin:0 0 10px;font-size:22px;color:#176b43;";
+  heading.style.cssText =
+    "margin:0 0 10px;font-size:22px;color:#176b43;";
   result.appendChild(heading);
 
   const summary = document.createElement("p");
-  summary.textContent = "Ingredients you've told me about: " +
-    availableIngredients.map(ingredientLabel).join(", ");
+  summary.textContent =
+    "Your ingredients: " + available.map(label).join(", ");
   result.appendChild(summary);
 
-  if (newDishes.length) {
-    const intro = document.createElement("p");
-    intro.textContent = "Choose a dish to see its full recipe:";
-    result.appendChild(intro);
+  // Compare every dish with the ingredients entered.
+  const analysed = dishes.map(dish => {
+    const matched = dish.main.filter(key => available.includes(key));
+    const missing = dish.main.filter(key => !available.includes(key));
 
-    newDishes.forEach(dish => {
-      const card = document.createElement("div");
-      card.style.cssText =
-        "padding:14px;margin-top:12px;background:white;border:1px solid #dce8da;border-radius:12px;";
+    return {
+      ...dish,
+      matched,
+      missing,
+      ratio: matched.length / dish.main.length
+    };
+  });
 
-      const title = document.createElement("h3");
-      title.textContent = dish.name;
-      title.style.cssText = "margin:0 0 6px;font-size:18px;color:#176b43;";
+  // 1. Every main ingredient is available.
+  const ready = analysed.filter(dish =>
+    dish.matched.length > 0 && dish.missing.length === 0
+  );
 
-      const description = document.createElement("p");
-      description.textContent = dish.description;
+  // 2. At least one main ingredient matches and exactly
+  // one main ingredient is missing.
+  const nearlyReady = analysed.filter(dish =>
+    dish.matched.length > 0 &&
+    dish.missing.length === 1
+  );
 
-      const main = document.createElement("p");
-      main.textContent = "Main ingredients: " +
-        dish.main.map(ingredientLabel).join(", ");
+  // 3. Other relevant dishes, without duplicating the
+  // dishes already shown in the first two sections.
+  const readyNames = new Set(ready.map(dish => dish.name));
+  const nearlyNames = new Set(nearlyReady.map(dish => dish.name));
 
-      const missingExtras = dish.extras.filter(
-        ingredient => !availableIngredients.includes(ingredient)
-      );
+  const suggestions = analysed
+    .filter(dish =>
+      dish.matched.length > 0 &&
+      !readyNames.has(dish.name) &&
+      !nearlyNames.has(dish.name)
+    )
+    .sort((a, b) =>
+      b.ratio - a.ratio ||
+      b.matched.length - a.matched.length
+    )
+    .slice(0, 4);
 
-      const extras = document.createElement("p");
-      extras.textContent = missingExtras.length
-        ? "Optional flavourings to check: " + missingExtras.map(ingredientLabel).join(", ")
-        : "You've listed the supporting ingredients for this dish too.";
+  // Create a heading for each section.
+  function addSection(title, subtitle) {
+    const section = document.createElement("section");
+    section.style.marginTop = "24px";
 
-      const time = document.createElement("p");
-      time.textContent = "Estimated total time: " + dish.time;
-      time.style.fontWeight = "600";
+    const h = document.createElement("h3");
+    h.textContent = title;
+    h.style.cssText = "color:#176b43;margin-bottom:6px;";
 
-      const recipeButton = makeButton("View full recipe →", () => showRecipe(dish));
+    const p = document.createElement("p");
+    p.textContent = subtitle;
 
-      card.append(title, description, main, extras, time, recipeButton);
-      result.appendChild(card);
+    section.append(h, p);
+    result.appendChild(section);
+    return section;
+  }
 
-      shownDishNames.push(dish.name);
+  // Render one dish card.
+  function addDishCard(section, dish, type) {
+    const card = document.createElement("article");
+    card.style.cssText =
+      "padding:14px;margin:12px 0;background:white;" +
+      "border:1px solid #dce8da;border-radius:12px;";
+
+    const title = document.createElement("h4");
+    title.textContent = dish.name;
+    title.style.cssText =
+      "margin:0 0 8px;font-size:18px;color:#176b43;";
+
+    const description = document.createElement("p");
+    description.textContent = dish.description;
+
+    const have = document.createElement("p");
+    have.textContent =
+      "You have: " + dish.matched.map(label).join(", ");
+
+    card.append(title, description, have);
+
+    if (type === "ready") {
+      const status = document.createElement("p");
+      status.textContent =
+        "✅ You have all the main ingredients.";
+      card.appendChild(status);
+    } else if (type === "nearly") {
+      const missing = document.createElement("p");
+      missing.textContent =
+        "🛒 You need: " + dish.missing.map(label).join(", ");
+      card.appendChild(missing);
+    } else {
+      const missing = document.createElement("p");
+      missing.textContent = dish.missing.length
+        ? "You may also need: " + dish.missing.map(label).join(", ")
+        : "You have the main ingredients.";
+      card.appendChild(missing);
+    }
+
+    const time = document.createElement("p");
+    time.textContent = "Estimated time: " + dish.time;
+
+    const view = makeButton("View full recipe →", () => {
+      renderRecipe(dish);
     });
+
+    card.append(time, view);
+    section.appendChild(card);
+  }
+
+  // SECTION 1: dishes ready to make.
+  const readySection = addSection(
+    "1. 🍲 Dishes you can make",
+    "These dishes have all their main ingredients in your list."
+  );
+
+  if (ready.length) {
+    ready.forEach(dish => addDishCard(readySection, dish, "ready"));
   } else {
-    const noMatch = document.createElement("p");
-    noMatch.textContent =
-      "I haven't found any new dishes matching your main ingredients. Tell me about any other ingredients you have, and I'll check again.";
-    result.appendChild(noMatch);
+    const p = document.createElement("p");
+    p.textContent =
+      "No complete matches yet. Check the missing ingredients below.";
+    readySection.appendChild(p);
   }
 
-  const relevantExtras = [
-    ...new Set(matchingDishes.flatMap(dish => dish.extras))
-  ].filter(ingredient => !availableIngredients.includes(ingredient));
+  // SECTION 2: dishes missing just one main ingredient.
+  const nearlySection = addSection(
+    "2. 🛒 Missing ingredients",
+    "You're just one main ingredient away from making these dishes."
+  );
 
-  const followUp = document.createElement("div");
-  followUp.style.cssText =
-    "margin-top:22px;padding:16px;background:white;border-radius:12px;border:1px solid #dce8da;";
+  if (nearlyReady.length) {
+    nearlyReady.forEach(dish =>
+      addDishCard(nearlySection, dish, "nearly")
+    );
+  } else {
+    const p = document.createElement("p");
+    p.textContent =
+      "No dishes are just one main ingredient away at the moment.";
+    nearlySection.appendChild(p);
+  }
 
-  const question = document.createElement("p");
-  question.style.fontWeight = "600";
-  question.textContent = "💚 Do you have any of these additional ingredients at home?";
+  // SECTION 3: additional ideas based on available ingredients.
+  const suggestionsSection = addSection(
+    "3. 💡 My suggestions",
+    "Here are a few more ideas using some of your ingredients."
+  );
 
-  const extrasList = document.createElement("p");
-  extrasList.textContent = relevantExtras.length
-    ? relevantExtras.map(ingredientLabel).join(", ") + "."
-    : "You've already listed the supporting ingredients for these dishes.";
+  if (suggestions.length) {
+    suggestions.forEach(dish =>
+      addDishCard(suggestionsSection, dish, "suggestion")
+    );
+  } else {
+    const p = document.createElement("p");
+    p.textContent =
+      "Add another ingredient to discover more dishes.";
+    suggestionsSection.appendChild(p);
+  }
 
-  const instruction = document.createElement("p");
-  instruction.textContent =
-    "Tell me which ones you have, and I'll check for more suitable dishes.";
+  const reset = makeButton("Start a new search", resetSearch);
+  reset.style.background = "#52685a";
+  result.appendChild(reset);
 
-  followUp.append(question, extrasList, instruction);
-  result.appendChild(followUp);
-  lastSuggestionsHTML = result.innerHTML;
-
-  result.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  result.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
+  });
 }
+  function resetSearch() {
+    available = [];
+    shown = new Set();
+    lastSuggestions = null;
 
-form.addEventListener("submit", function(event) {
-  event.preventDefault();
+    const result = resultArea();
+    result.replaceChildren();
 
-  const question = input.value.trim().toLowerCase();
-
-  if (!question) {
-    input.focus();
-    return;
-  }
-
-  if (["start again", "new search", "clear ingredients"].includes(question)) {
-    availableIngredients = [];
-    shownDishNames = [];
-    currentView = "suggestions";
-    createResultArea().textContent =
+    const message = document.createElement("p");
+    message.textContent =
       "Let's start fresh! What ingredients do you have at home?";
+    result.appendChild(message);
+
     input.value = "";
     input.placeholder = "Tell me what ingredients you have...";
     input.focus();
-    return;
   }
 
-  const found = findIngredients(question);
+  form.addEventListener("submit", event => {
+    event.preventDefault();
 
-  if (!found.length) {
-    createResultArea().textContent =
-      "I couldn't identify any ingredients in that message. Try rice, tomato, onion, potato, garlic, ginger or green chilli. Type 'start again' for a new search.";
-    input.value = "";
-    input.focus();
-    return;
-  }
+    const question = input.value.trim().toLowerCase();
 
-  found.forEach(ingredient => {
-    if (!availableIngredients.includes(ingredient)) {
-      availableIngredients.push(ingredient);
+    if (!question) {
+      input.focus();
+      return;
     }
+
+    if ([
+      "start again",
+      "new search",
+      "clear ingredients",
+      "clear search",
+      "clear"
+    ].includes(question)) {
+      resetSearch();
+      return;
+    }
+
+    const found = findIngredients(question);
+
+    if (!found.length) {
+      const result = resultArea();
+      result.textContent =
+        "I couldn't identify an ingredient. Try rice, tomato, onion, potato, garlic, ginger or green chilli.";
+      input.value = "";
+      input.focus();
+      return;
+    }
+
+    found.forEach(key => {
+      if (!available.includes(key)) {
+        available.push(key);
+      }
+    });
+
+    renderSuggestions();
+
+    input.value = "";
+    input.placeholder = "Tell me any other ingredients you have...";
+    input.focus();
   });
 
-  showSuggestions(createResultArea());
-
-  input.value = "";
-  input.placeholder = "Tell me any other ingredients you have...";
-  input.focus();
-});
+  console.log("Enna Samayal JavaScript loaded successfully.");
+})();
